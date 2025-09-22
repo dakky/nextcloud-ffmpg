@@ -30,7 +30,7 @@ jobs:
       - name: Extract Nextcloud upstream version
         id: ncver
         run: |
-          VERSION=$(docker run --rm nextcloud:latest cat /var/www/html/version.php | grep "'version'" | awk -F"'" '{print $4}')
+          VERSION=$(docker run --rm nextcloud:apache cat /var/www/html/version.php | grep "'version'" | awk -F"'" '{print $4}')
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Build and push image
