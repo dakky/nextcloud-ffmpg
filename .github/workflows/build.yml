@@ -27,12 +27,6 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract Nextcloud upstream version
-        id: ncver
-        run: |
-          VERSION=$(docker run --rm nextcloud:apache cat /var/www/html/version.php | grep "'version'" | awk -F"'" '{print $4}')
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-
       - name: Build and push image
         uses: docker/build-push-action@v5
         with:
@@ -40,4 +34,3 @@ jobs:
           push: true
           tags: |
             ghcr.io/${{ github.repository_owner }}/nextcloud-ffmpeg:latest
-            ghcr.io/${{ github.repository_owner }}/nextcloud-ffmpeg:${{ steps.ncver.outputs.version }}
