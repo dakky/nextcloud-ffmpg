@@ -6,6 +6,8 @@
   <a href="https://github.com/dakky/nextcloud-ffmpg/actions">
     <img src="https://github.com/dakky/nextcloud-ffmpg/actions/workflows/build.yml/badge.svg" alt="Build Status" />
   </a>
+  <br>
+  <img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/dakky/nextcloud-ffmpeg/main/.github/badges/lastpush.json" alt="Nextcloud push" />
 </p>
 	<p><strong>Nextcloud Docker image with integrated FFmpeg for advanced media processing</strong></p>
 	<br/>

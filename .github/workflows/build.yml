@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
 
     permissions:
-      contents: read
+      contents: write    # needed to commit badge
       packages: write
 
     steps:
@@ -57,3 +57,57 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository_owner }}/nextcloud-ffmpeg:latest
             ghcr.io/${{ github.repository_owner }}/nextcloud-ffmpeg:${{ steps.ncver.outputs.version }}
+
+      - name: Generate last push badge JSON
+        if: always()
+        run: |
+          mkdir -p .github/badges
+
+          echo "Checking latest pushed tag..."
+          LATEST_TAG=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            https://ghcr.io/v2/${{ github.repository_owner }}/nextcloud-ffmpeg/tags/list \
+            | jq -r '.tags | map(select(. != "latest")) | sort | .[-1]')
+
+          if [ -z "$LATEST_TAG" ]; then
+            echo "⚠️ Could not find any tags"
+            exit 0
+          fi
+
+          LATEST_TAG_DATE=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            https://ghcr.io/v2/${{ github.repository_owner }}/nextcloud-ffmpeg/manifests/$LATEST_TAG \
+            | jq -r '.history[0].v1Compatibility' | jq -r '.created')
+
+          if [ -z "$LATEST_TAG_DATE" ]; then
+            echo "⚠️ Could not fetch creation date"
+            exit 0
+          fi
+
+          LATEST_DATE=$(date -d "$LATEST_TAG_DATE" +%s)
+          NOW=$(date +%s)
+          DAYS=$(( (NOW - LATEST_DATE) / 86400 ))
+
+          if [ $DAYS -gt 30 ]; then
+            COLOR="red"
+          elif [ $DAYS -gt 14 ]; then
+            COLOR="yellow"
+          else
+            COLOR="green"
+          fi
+
+          cat > .github/badges/lastpush.json <<EOF
+          {
+            "schemaVersion": 1,
+            "label": "nextcloud",
+            "message": "v$LATEST_TAG • ${DAYS} days ago",
+            "color": "$COLOR"
+          }
+          EOF
+
+      - name: Commit badge file
+        if: always()
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add .github/badges/lastpush.json
+          git commit -m "Update last push badge" || echo "No changes to commit"
+          git push
