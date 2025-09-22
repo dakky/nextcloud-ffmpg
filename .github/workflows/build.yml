@@ -30,10 +30,26 @@ jobs:
       - name: Extract Nextcloud upstream version
         id: ncver
         run: |
-          VERSION=$(docker run --rm nextcloud:apache /usr/src/nextcloud/occ --no-warnings  status | grep -w versionstring | awk '{print $3}')
+          VERSION=$(docker run --rm nextcloud:apache /usr/src/nextcloud/occ --no-warnings status | grep -w versionstring | awk '{print $3}')
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
+      - name: Check if version already exists in GHCR
+        id: check
+        run: |
+          if docker manifest inspect ghcr.io/${{ github.repository_owner }}/nextcloud-ffmpeg:${{ steps.ncver.outputs.version }} > /dev/null 2>&1; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Stop if version already exists
+        if: steps.check.outputs.exists == 'true'
+        run: |
+          echo "Image for version ${{ steps.ncver.outputs.version }} already exists. Skipping build."
+          exit 0
+
       - name: Build and push image
+        if: steps.check.outputs.exists == 'false'
         uses: docker/build-push-action@v5
         with:
           context: .
