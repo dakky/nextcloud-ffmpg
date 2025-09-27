@@ -1,10 +1,10 @@
 
 <div align="center">
 	<img src="https://raw.githubusercontent.com/nextcloud/server/master/apps/theming/img/nextcloud.svg" alt="Nextcloud Logo" width="120"/>
-	<h1>nextcloud-ffmpg</h1>
+	<h1>nextcloud-ffmpeg</h1>
 <p align="center">
-  <a href="https://github.com/dakky/nextcloud-ffmpg/actions">
-    <img src="https://github.com/dakky/nextcloud-ffmpg/actions/workflows/build.yml/badge.svg" alt="Build Status" />
+	<a href="https://github.com/dakky/nextcloud-ffmpeg/actions">
+		<img src="https://github.com/dakky/nextcloud-ffmpeg/actions/workflows/build.yml/badge.svg" alt="Build Status" />
   </a>
 </p>
 	<p><strong>Nextcloud Docker image with integrated FFmpeg for advanced media processing</strong></p>
@@ -26,19 +26,22 @@ This project provides a custom Docker image for [Nextcloud](https://nextcloud.co
 ## 🐳 Quick Start
 
 ```sh
-# Clone the repository (if needed)
 git clone https://github.com/dakky/nextcloud-ffmpg.git
-cd nextcloud-ffmpg
+
+# Clone the repository (if needed)
+git clone https://github.com/dakky/nextcloud-ffmpeg.git
+cd nextcloud-ffmpeg
+
 
 # Build the Docker image
-sudo docker build -t nextcloud-ffmpg .
+sudo docker build -t nextcloud-ffmpeg .
 
 # Run the container
 sudo docker run -d \
 	-p 8080:80 \
 	-v nextcloud_data:/var/www/html \
-	--name nextcloud-ffmpg \
-	nextcloud-ffmpg
+	--name nextcloud-ffmpeg \
+	nextcloud-ffmpeg
 ```
 
 Access your Nextcloud instance at [http://localhost:8080](http://localhost:8080).

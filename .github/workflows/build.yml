@@ -37,16 +37,19 @@ jobs:
           SHA_FILE=".last_upstream_sha"
           DIGEST=$(docker manifest inspect "$UPSTREAM_IMAGE" --verbose | grep Digest | head -n 1 | awk '{print $2}')
           echo "Upstream image digest: $DIGEST"
+          SHOULD_BUILD=true
           if [ -f "$SHA_FILE" ]; then
             LAST_DIGEST=$(cat "$SHA_FILE")
             if [ "$DIGEST" = "$LAST_DIGEST" ]; then
               echo "No change in upstream image. Skipping build."
-              exit 78
+              SHOULD_BUILD=false
             fi
           fi
           echo "$DIGEST" > "$SHA_FILE"
+          echo "should_build=$SHOULD_BUILD" >> $GITHUB_OUTPUT
 
       - name: Log in to GHCR
+        if: steps.checksha.outputs.should_build == 'true'
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
@@ -54,7 +57,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push image
-        if: success()
+        if: steps.checksha.outputs.should_build == 'true'
         uses: docker/build-push-action@v5
         with:
           context: .
