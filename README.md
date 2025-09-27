@@ -46,10 +46,12 @@ sudo docker run -d \
 
 Access your Nextcloud instance at [http://localhost:8080](http://localhost:8080).
 
-## ⚙️ Requirements
+
+## ⚙️ Requirements & Architecture
 
 - Docker (v20+ recommended)
 - ~2GB RAM for smooth media processing
+- **Only the amd64 architecture is supported and built by this image.**
 
 ## 🛠️ Customization
 

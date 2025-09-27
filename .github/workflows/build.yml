@@ -35,8 +35,8 @@ jobs:
         run: |
           UPSTREAM_IMAGE="nextcloud:apache"
           SHA_FILE=".last_upstream_sha"
-          DIGEST=$(docker manifest inspect "$UPSTREAM_IMAGE" --verbose | grep Digest | head -n 1 | awk '{print $2}')
-          echo "Upstream image digest: $DIGEST"
+          DIGEST=$(docker manifest inspect "$UPSTREAM_IMAGE" | jq -r '.manifests[] | select(.platform.architecture=="amd64" and .platform.os=="linux") | .digest')
+          echo "Upstream amd64 image digest: $DIGEST"
           SHOULD_BUILD=true
           if [ -f "$SHA_FILE" ]; then
             LAST_DIGEST=$(cat "$SHA_FILE")
