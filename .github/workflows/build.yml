@@ -20,40 +20,44 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Restore upstream SHA cache
+        id: cache-sha
+        uses: actions/cache@v4
+        with:
+          path: .last_upstream_sha
+          key: upstream-sha-nextcloud-apache
+
+      - name: Check upstream image SHA
+        id: checksha
+        run: |
+          UPSTREAM_IMAGE="nextcloud:apache"
+          SHA_FILE=".last_upstream_sha"
+          DIGEST=$(docker manifest inspect "$UPSTREAM_IMAGE" --verbose | grep Digest | head -n 1 | awk '{print $2}')
+          echo "Upstream image digest: $DIGEST"
+          if [ -f "$SHA_FILE" ]; then
+            LAST_DIGEST=$(cat "$SHA_FILE")
+            if [ "$DIGEST" = "$LAST_DIGEST" ]; then
+              echo "No change in upstream image. Skipping build."
+              exit 78
+            fi
+          fi
+          echo "$DIGEST" > "$SHA_FILE"
+
       - name: Log in to GHCR
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Extract Nextcloud upstream version
-        id: ncver
-        run: |
-          VERSION=$(docker run --rm nextcloud:apache /usr/src/nextcloud/occ --no-warnings status | grep -w versionstring | awk '{print $3}')
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-
-      - name: Check if version already exists in GHCR
-        id: check
-        run: |
-          if docker manifest inspect ghcr.io/${{ github.repository_owner }}/nextcloud-ffmpeg:${{ steps.ncver.outputs.version }} > /dev/null 2>&1; then
-            echo "exists=true" >> $GITHUB_OUTPUT
-          else
-            echo "exists=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Stop if version already exists
-        if: steps.check.outputs.exists == 'true'
-        run: |
-          echo "Image for version ${{ steps.ncver.outputs.version }} already exists. Skipping build."
-          exit 0
-
+          
       - name: Build and push image
-        if: steps.check.outputs.exists == 'false'
+        if: success()
         uses: docker/build-push-action@v5
         with:
           context: .
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/nextcloud-ffmpeg:latest
-            ghcr.io/${{ github.repository_owner }}/nextcloud-ffmpeg:${{ steps.ncver.outputs.version }}
+            ghcr.io/${{ github.repository_owner }}/nextcloud-ffmpg:latest
